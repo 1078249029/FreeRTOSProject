@@ -1,9 +1,7 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include "FreeRTOS.h"
-
-
+#include "portmacro.h"
 
 struct xLIST_ITEM
 {
