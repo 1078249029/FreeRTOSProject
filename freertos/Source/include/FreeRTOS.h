@@ -9,7 +9,7 @@
 
 typedef struct tskTaskControlBlock
 {
-	 volatile StackType_t *pxTopOfStack;
+	 volatile StackType_t *pxTopOfStack;	//可以改为韦讲的其他方法
 	 /* 栈顶 */
 	 ListItem_t xStateListItem;
 	 /* 任务节点 */
