@@ -4,6 +4,14 @@
 #include "list.h"
 
 
+#define portYIELD()											\
+{															\
+	/* 触发 PendSV,产生上下文切换 */									\
+	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT; 		\
+	__dsb( portSY_FULL_READ_WRITE );						\
+	__isb( portSY_FULL_READ_WRITE );						\
+}
+
 #define taskYIELD()			portYIELD()
 
 
@@ -23,5 +31,7 @@ void prvInitialiseTaskLists( void );
 void vTaskStartScheduler( void );
 void vTaskSwitchContext( void );
 
+
                                 
-#endif /* TASK_H */ 
+#endif /* TASK_H */
+								

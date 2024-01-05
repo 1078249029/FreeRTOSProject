@@ -1,4 +1,8 @@
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "ARMCM3.h"
+
 #define portINITIAL_XPSR			( 0x01000000 )
 #define portSTART_ADDRESS_MASK		( ( StackType_t ) 0xfffffffeUL )
 
@@ -11,7 +15,7 @@
 */
 
 /* 对0xe000ed20地址处取值，此处为SHPR3寄存器，设置的是pendsv和systick优先级 */
-#define portNVIC_SYSPRI2_REG	*(( volatile uint32_t *) 0xe000ed20)) 
+#define portNVIC_SYSPRI2_REG	*(( volatile uint32_t *) 0xe000ed20) 
 #define portNVIC_PENDSV_PRI 	(((uint32_t) configKERNEL_INTERRUPT_PRIORITY ) << 16UL)
 #define portNVIC_SYSTICK_PRI 	(((uint32_t) configKERNEL_INTERRUPT_PRIORITY ) << 24UL )
 
@@ -92,6 +96,36 @@ __asm void vPortSVCHandler( void )
  bx r14
 }
 
+ __asm void xPortPendSVHandler( void )
+{
+	extern pxCurrentTCB;
+	extern vTaskSwitchContext;
+
+	PRESERVE8
+
+	mrs r0, psp
+	isb
+	ldr r3, =pxCurrentTCB
+	ldr r2, [r3]
+	stmdb r0!, {r4-r11}
+	str r0, [r2]
+	stmdb sp!, {r3, r14}
+	mov r0, #configMAX_SYSCALL_INTERRUPT_PRIORITY
+	msr basepri, r0
+	dsb
+	isb
+	bl vTaskSwitchContext
+	mov r0, #0
+	msr basepri, r0
+	ldmia sp!, {r3, r14}
+	ldr r1, [r3]
+	ldr r0, [r1]
+	ldmia r0!, {r4-r11}
+	msr psp, r0
+	isb
+	bx r14
+	nop
+}
 
 BaseType_t xPortStartScheduler( void )
 {
@@ -103,6 +137,6 @@ BaseType_t xPortStartScheduler( void )
 	 prvStartFirstTask();
 
 	/* 不会执行到这里 */
-	 return 0；
+	 return 0;
 }
 

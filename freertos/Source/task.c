@@ -1,11 +1,12 @@
-#include "task.h"
+
 #include "FreeRTOS.h"
-#include "portable.h"
+#include "task.h"
 
 List_t pxReadyTasksLists[ configMAX_PRIORITIES ];
 TCB_t volatile *pxCurrentTCB = NULL;
 
 extern TCB_t Task1TCB;
+extern TCB_t Task2TCB;
 
 
 
@@ -20,32 +21,32 @@ static void prvInitialiseNewTask(TaskFunction_t pxTaskCode,
 	UBaseType_t x;
 
 	/* 获取栈顶地址 */
-	pxTopOfStack = pxNewTCB->pxTopOfStack + (ulStackDepth - (uint32_t)1);
+	pxTopOfStack = pxNewTCB->pxStack + (ulStackDepth - (uint32_t)1);
 	
 	/* 栈顶地址向高地址做 8 字节对齐,32位机只需要四字节对齐即可，但是需要考虑兼容浮点运算的64位操作 */
- 	pxTopOfStack = (StackType_t)(((uint32_t)pxTopOfStack)&(~(uint32_t)0x0007)
+ 	pxTopOfStack = (StackType_t*)(((uint32_t)pxTopOfStack)&(~(uint32_t)0x0007));
 
 	/* 将任务的名字存储在 TCB 中 */
-	for( x = 0; x < (UBaseType_t)configMAX_TASK_NAME_LEN && pcTaskName[x] == 0x0000; x++ )
+	for( x = 0; x < (UBaseType_t)configMAX_TASK_NAME_LEN && pcName[x] == 0x0000; x++ )
 	//条件判定可以么？
 	{
-		pxNewTCB->pcTaskName[x] = pcName[x]
+		pxNewTCB->pcTaskName[x] = pcName[x];
 	}
 
 	/* 任务名字的长度不能超过 configMAX_TASK_NAME_LEN */
 	pxNewTCB->pcTaskName[configMAX_TASK_NAME_LEN - 1] = '\0';
 
 	/* 初始化 TCB 中的 xStateListItem 节点 */
-	vListInitialiseItem(pxNewTCB->xStateListItem);
+	vListInitialiseItem(&(pxNewTCB->xStateListItem));
 
  	/* 设置 xStateListItem 节点的拥有者 */
-	listSET_LIST_ITEM_OWNER(pxNewTCB->xStateListItem,pxNewTCB)//不取地址如何？
+	listSET_LIST_ITEM_OWNER(&(pxNewTCB->xStateListItem),&pxNewTCB);//不取地址如何？
 	
 	/* 初始化任务栈 */
-	pxNewTCB->pxTopOfStack = pxPortInitialiseStack( pxTopOfStack,pxTaskCode,pvParameters );
-
+	pxNewTCB->pxTopOfStack = (StackType_t *)pxPortInitialiseStack( pxTopOfStack, pxTaskCode, pvParameters ); 
+	
 	/* 让任务句柄指向任务控制块 */
-	*pxCreatedTask = (TaskHandle_t)(*pxNewTCB)//对pxNewTCB取值如何？
+	*pxCreatedTask = (TaskHandle_t)pxNewTCB;//对pxNewTCB取值如何？TCB
 	
 }
 
@@ -92,17 +93,32 @@ void prvInitialiseTaskLists( void )
 		/* 优先级列表的初始化 */
 		vListInitialise(&pxReadyTasksLists[uxPriority]);
 	}
-}
+}
 
-
+
+
+
 void vTaskStartScheduler( void )
 {
 	pxCurrentTCB = &Task1TCB;	//手动指定第一个任务
-	
+	
+
 	if(  xPortStartScheduler() != pdFALSE )
 	{
 		/* xPortStartScheduler启动成功后不会执行到return语句，因此不会执行到此行 */
 	}
+}
+
+void vTaskSwitchContext( void )
+{    
+    if( pxCurrentTCB == &Task1TCB )
+    {
+        pxCurrentTCB = &Task2TCB;
+    }
+    else
+    {
+        pxCurrentTCB = &Task1TCB;
+    }
 }
 
 

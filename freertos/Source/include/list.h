@@ -1,7 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include "portmacro.h"
+//#include "portmacro.h" 我的库文件关系
+#include "FreeRTOS.h"
 
 struct xLIST_ITEM
 {
