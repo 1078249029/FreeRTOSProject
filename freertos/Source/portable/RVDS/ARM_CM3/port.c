@@ -5,6 +5,7 @@
 
 #define portINITIAL_XPSR			( 0x01000000 )
 #define portSTART_ADDRESS_MASK		( ( StackType_t ) 0xfffffffeUL )
+static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 
 /*
 * 参考资料《STM32F10xxx Cortex-M3 programming manual》4.4.7,百度搜索“PM0056”即可找到这个文档
@@ -91,9 +92,9 @@ __asm void vPortSVCHandler( void )
  msr psp, r0
  isb
  mov r0, #0
- msr basepri, r0
- orr r14, #0xd
- bx r14
+ msr basepri, r0	//开中断
+ orr r14, #0xd		//设置LR的值
+ bx r14				//此处不会返回r14(LR),而是返回到任务堆栈
 }
 
  __asm void xPortPendSVHandler( void )
@@ -123,7 +124,7 @@ __asm void vPortSVCHandler( void )
 	ldmia r0!, {r4-r11}
 	msr psp, r0
 	isb
-	bx r14
+	bx r14	//此处不会返回r14(LR),而是返回到任务堆栈
 	nop
 }
 
@@ -139,4 +140,17 @@ BaseType_t xPortStartScheduler( void )
 	/* 不会执行到这里 */
 	 return 0;
 }
+
+void vPortExitCritical(void)
+{
+	portDISABLE_INTERRUPTS();
+	uxCriticalNesting++;
+
+	if( uxCriticalNesting == 1 )
+	{
+		//configASSERT( ( portNVIC_INT_CTRL_REG & portVECTACTIVE_MASK ) == 0 );
+		//野火没有解除注释
+	}
+}
+
 

@@ -12,7 +12,12 @@
 	__isb( portSY_FULL_READ_WRITE );						\
 }
 
-#define taskYIELD()			portYIELD()
+#define taskYIELD()						portYIELD()
+
+#define taskENTER_CRITICAL()			portENTER_CRITICAL()
+#define taskENTER_CRITICAL_FROM_ISR() 	portSET_INTERRUPT_MASK_FROM_ISR()
+#define taskEXIT_CRITICAL() 			portEXIT_CRITICAL()
+#define taskEXIT_CRITICAL_FROM_ISR( x ) portCLEAR_INTERRUPT_MASK_FROM_ISR( x )
 
 
 typedef void * TaskHandle_t;
@@ -30,8 +35,5 @@ TaskHandle_t xTaskCreateStatic(	TaskFunction_t pxTaskCode,
 void prvInitialiseTaskLists( void );                                
 void vTaskStartScheduler( void );
 void vTaskSwitchContext( void );
-
-
-                                
+                         
 #endif /* TASK_H */
-								
