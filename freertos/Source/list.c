@@ -44,8 +44,8 @@ void vListInsert( List_t * const pxList, ListItem_t * const pxNewListItem )
 	else
 	{
 		for(pxIterator = (ListItem_t*)&(pxList->xListEnd) ; 
-		xValueOfInsertion >= pxIterator->pxNext->xItemValue ; 
-		pxIterator = pxIterator->pxNext )
+			xValueOfInsertion >= pxIterator->pxNext->xItemValue ; 
+			pxIterator = pxIterator->pxNext )
 		{
 			
 		}

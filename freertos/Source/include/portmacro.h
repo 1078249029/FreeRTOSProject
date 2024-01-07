@@ -32,12 +32,17 @@ typedef uint32_t TickType_t;
 #define portNVIC_PENDSVSET_BIT		( 1UL << 28UL )
 #define portSY_FULL_READ_WRITE		( 15 )
 
+/* 触发 PendSV,产生上下文切换 */
 #define portYIELD()																\
 {																				\
 	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;								\
 	__dsb( portSY_FULL_READ_WRITE );											\
 	__isb( portSY_FULL_READ_WRITE );											\
 }
+
+#define portENTER_CRITICAL()					vPortEnterCritical()
+#define portEXIT_CRITICAL()						vPortExitCritical()
+
 
 /* 不带返回值的关中断函数,不能嵌套,不能在中断里面使用 */
 #define portDISABLE_INTERRUPTS() vPortRaiseBASEPRI()
@@ -80,7 +85,7 @@ static portFORCE_INLINE uint32_t ulPortRaiseBASEPRI( void )
 	return ulReturn;
 }
 
-
+/* 带参数就是带中断保护 */
 /* 不带中断保护的开中断函数，与portDISABLE_INTERRUPTS()成对使用 */
 #define portENABLE_INTERRUPTS() vPortSetBASEPRI( 0 )
 /* 带中断保护的开中断函数，与portSET_INTERRUPT_MASK_FROM_ISR()成对使用 */

@@ -4,6 +4,7 @@
 //#include "portmacro.h" 我的库文件关系
 #include "FreeRTOS.h"
 
+
 struct xLIST_ITEM
 {
 	TickType_t xItemValue;			/* 辅助值,用于帮助节点做顺序排列 */ 
@@ -73,16 +74,15 @@ typedef struct xLIST
 #define listGET_OWNER_OF_NEXT_ENTRY( pxTCB, pxList ) 										\
 { 																							\
 	List_t * const pxConstList = ( pxList );												\
-	 /* 节点索引指向链表下一个节点 */ 														\
+	 /* 节点索引指向链表下一个节点 */ 																	\
 	( pxConstList )->pxIndex = ( pxConstList )->pxIndex->pxNext;							\
-	 /* 这个操作有啥用? */ 																	\
+	 /* 这个操作有啥用? */ 																		\
 	if( ( void * ) ( pxConstList )->pxIndex == ( void * ) &( ( pxConstList )->xListEnd ) ) 	\
 	{																						\
 		( pxConstList )->pxIndex = ( pxConstList )->pxIndex->pxNext;						\
 	}																						\
 	( pxTCB ) = ( pxConstList )->pxIndex->pvOwner;											\
 }
-
 #define listGET_OWNER_OF_HEAD_ENTRY( pxList )  ( (&( ( pxList )->xListEnd ))->pxNext->pvOwner )
 
 void vListInitialise( List_t * const pxList );

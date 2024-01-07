@@ -17,7 +17,8 @@ typedef struct tskTaskControlBlock
 	 StackType_t *pxStack;
 	 /* 任务名称,字符串形式 */
 	 char pcTaskName[ configMAX_TASK_NAME_LEN ];
-	 
+	 /* 任务延时时间 */
+	 TickType_t xTicksToDelay; 
 } tskTCB;
 typedef tskTCB TCB_t;
 

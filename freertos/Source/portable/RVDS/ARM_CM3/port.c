@@ -20,6 +20,33 @@ static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 #define portNVIC_PENDSV_PRI 	(((uint32_t) configKERNEL_INTERRUPT_PRIORITY ) << 16UL)
 #define portNVIC_SYSTICK_PRI 	(((uint32_t) configKERNEL_INTERRUPT_PRIORITY ) << 24UL )
 
+/* SysTick 控制寄存器 */
+#define portNVIC_SYSTICK_CTRL_REG (*((volatile uint32_t *) 0xe000e010 ))
+/* SysTick 重装寄存器 */
+#define portNVIC_SYSTICK_LOAD_REG (*((volatile uint32_t *) 0xe000e014 ))
+/* SysTick 时钟源选择 */
+#ifndef configSYSTICK_CLOCK_HZ
+	#define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
+/* 确保 SysTick 的时钟与内核时钟一致 */
+	#define portNVIC_SYSTICK_CLK_BIT	( 1UL << 2UL )
+#else
+	#define portNVIC_SYSTICK_CLK_BIT	( 0 )
+#endif
+#define portNVIC_SYSTICK_INT_BIT 	( 1UL << 1UL )
+#define portNVIC_SYSTICK_ENABLE_BIT	 ( 1UL << 0UL )
+
+
+void vPortSetupTimerInterrupt( void )
+{
+	/* 设置重装寄存器 */
+	portNVIC_SYSTICK_LOAD_REG = (configSYSTICK_CLOCK_HZ/configTICK_RATE_HZ)-1UL;
+
+	/* 设置系统时钟等于内核时钟，使能定时器及其中断 */
+	portNVIC_SYSTICK_CTRL_REG = ( portNVIC_SYSTICK_CLK_BIT |
+								portNVIC_SYSTICK_INT_BIT |
+								portNVIC_SYSTICK_ENABLE_BIT );
+}
+
 
 static void prvTaskExitError( void )
 {
@@ -37,15 +64,15 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack,
 {
 	/* 异常发生时,自动加载到 CPU 寄存器的内容 */
 	pxTopOfStack--;
-	*pxTopOfStack = portINITIAL_XPSR;
+	*pxTopOfStack = portINITIAL_XPSR;/* xPSR的bit24必须置1 */
 	pxTopOfStack--;
-	*pxTopOfStack = ( ( StackType_t ) pxCode ) & portSTART_ADDRESS_MASK; 
+	*pxTopOfStack = ( ( StackType_t ) pxCode ) & portSTART_ADDRESS_MASK; /* PC，即任务入口函数 */
 	pxTopOfStack--;
-	*pxTopOfStack = ( StackType_t ) prvTaskExitError;
+	*pxTopOfStack = ( StackType_t ) prvTaskExitError;/* LR，函数返回地址 */
 	pxTopOfStack -= 5; /* R12, R3, R2 and R1 默认初始化为 0 */
-	*pxTopOfStack = ( StackType_t ) pvParameters;
+	*pxTopOfStack = ( StackType_t ) pvParameters;/* R0，任务形参 */
 	/* 异常发生时,手动加载到 CPU 寄存器的内容 */
-	pxTopOfStack -= 8;
+	pxTopOfStack -= 8;/* R11, R10, R9, R8, R7, R6, R5 and R4默认初始化为0 */
 	/* 返回栈顶指针,此时 pxTopOfStack 指向空闲栈 */
 	return pxTopOfStack;
 }
@@ -134,6 +161,9 @@ BaseType_t xPortStartScheduler( void )
 	 portNVIC_SYSPRI2_REG |= portNVIC_PENDSV_PRI;	//SHPR3寄存器被设置为 0x**FF ****
 	 portNVIC_SYSPRI2_REG |= portNVIC_SYSTICK_PRI;	//SHPR3寄存器被设置为 0xFFFF ****
 
+	/* 初始化时钟及其中断 */
+	vPortSetupTimerInterrupt();
+
 	/* 启动调度器，并陷入 */
 	 prvStartFirstTask();
 
@@ -141,11 +171,12 @@ BaseType_t xPortStartScheduler( void )
 	 return 0;
 }
 
-void vPortExitCritical(void)
+/* 不能在中断中使用 */
+void vPortEnterCritical( void )
 {
 	portDISABLE_INTERRUPTS();
 	uxCriticalNesting++;
-
+	
 	if( uxCriticalNesting == 1 )
 	{
 		//configASSERT( ( portNVIC_INT_CTRL_REG & portVECTACTIVE_MASK ) == 0 );
@@ -153,4 +184,40 @@ void vPortExitCritical(void)
 	}
 }
 
+void vPortExitCritical(void)
+{
+	uxCriticalNesting--;
+	if( uxCriticalNesting == 0 )
+	{
+		portENABLE_INTERRUPTS();
+	}
+}
+
+/********************************新增代码**********************************/
+
+static portFORCE_INLINE void vPortClearBASEPRIFromISR( void )
+{
+	__asm
+	{
+		/* Set BASEPRI to 0 so no interrupts are masked.  This function is only
+		used to lower the mask in an interrupt, so memory barriers are not 
+		used. */
+		msr basepri, #0
+	}
+}
+
+
+void xPortSysTickHandler( void )
+{
+//	uint32_t ISRreturn;
+//	/* 关中断 */
+// 	ISRreturn = portSET_INTERRUPT_MASK_FROM_ISR();	//使用的是能在中断中使用的函数会如何？
+//	/* 更新系统时基 */
+//	xTaskIncrementTick();
+//	/* 开中断 */
+//	portCLEAR_INTERRUPT_MASK_FROM_ISR(ISRreturn);
+	vPortRaiseBASEPRI();
+	xTaskIncrementTick();
+	vPortClearBASEPRIFromISR();
+}
 
