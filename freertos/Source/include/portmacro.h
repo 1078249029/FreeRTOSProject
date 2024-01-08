@@ -100,5 +100,14 @@ static portFORCE_INLINE void vPortSetBASEPRI( uint32_t ulBASEPRI )
 	}
 }
 
+static portFORCE_INLINE void vPortClearBASEPRIFromISR( void )
+{
+	__asm
+	{
+		msr basepri, #0
+	}
+}
+
+
 #endif /* PORTMACRO_H */
 

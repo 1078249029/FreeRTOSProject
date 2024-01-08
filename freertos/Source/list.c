@@ -67,7 +67,7 @@ UBaseType_t uxListRemove( ListItem_t * const pxItemToRemove )
 	{
 		pxList->pxIndex = pxList->pxIndex->pxPrevious;
 	}	
-	pxItemToRemove->pvContainer = NULL;//有什么用呢?
+	//pxItemToRemove->pvContainer = NULL;//有什么用呢?
 	(pxList->uxNumberOfItems) --;
 	return pxList->uxNumberOfItems;
 }

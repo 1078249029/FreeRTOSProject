@@ -24,6 +24,8 @@ static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 #define portNVIC_SYSTICK_CTRL_REG (*((volatile uint32_t *) 0xe000e010 ))
 /* SysTick 重装寄存器 */
 #define portNVIC_SYSTICK_LOAD_REG (*((volatile uint32_t *) 0xe000e014 ))
+
+
 /* SysTick 时钟源选择 */
 #ifndef configSYSTICK_CLOCK_HZ
 	#define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
@@ -32,13 +34,15 @@ static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 #else
 	#define portNVIC_SYSTICK_CLK_BIT	( 0 )
 #endif
+
+
 #define portNVIC_SYSTICK_INT_BIT 	( 1UL << 1UL )
 #define portNVIC_SYSTICK_ENABLE_BIT	 ( 1UL << 0UL )
 
 
 void vPortSetupTimerInterrupt( void )
 {
-	/* 设置重装寄存器 */
+	/* 设置重装寄存器,别忘了从零开始计数，需要减1哦 */
 	portNVIC_SYSTICK_LOAD_REG = (configSYSTICK_CLOCK_HZ/configTICK_RATE_HZ)-1UL;
 
 	/* 设置系统时钟等于内核时钟，使能定时器及其中断 */
@@ -52,12 +56,11 @@ static void prvTaskExitError( void )
 {
 
 /* 函数停止在这里 */
-
 for (;;);
+
 }
 
 
-/*  */
 StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack,
 									TaskFunction_t pxCode, //任务入口，也是函数名称
 									void *pvParameters )
@@ -121,7 +124,7 @@ __asm void vPortSVCHandler( void )
  mov r0, #0
  msr basepri, r0	//开中断
  orr r14, #0xd		//设置LR的值
- bx r14				//此处不会返回r14(LR),而是返回到任务堆栈
+ bx r14				//此处不会返回r14(LR),而是返回到任务堆栈，具体看CM3手册
 }
 
  __asm void xPortPendSVHandler( void )
@@ -151,7 +154,7 @@ __asm void vPortSVCHandler( void )
 	ldmia r0!, {r4-r11}
 	msr psp, r0
 	isb
-	bx r14	//此处不会返回r14(LR),而是返回到任务堆栈
+	bx r14	//此处不会返回r14(LR),而是返回到任务堆栈，具体看CM3手册
 	nop
 }
 
@@ -180,7 +183,7 @@ void vPortEnterCritical( void )
 	if( uxCriticalNesting == 1 )
 	{
 		//configASSERT( ( portNVIC_INT_CTRL_REG & portVECTACTIVE_MASK ) == 0 );
-		//野火没有解除注释
+		//野火没有解除注释，因为没有定义configASSERT
 	}
 }
 
@@ -195,16 +198,7 @@ void vPortExitCritical(void)
 
 /********************************新增代码**********************************/
 
-static portFORCE_INLINE void vPortClearBASEPRIFromISR( void )
-{
-	__asm
-	{
-		/* Set BASEPRI to 0 so no interrupts are masked.  This function is only
-		used to lower the mask in an interrupt, so memory barriers are not 
-		used. */
-		msr basepri, #0
-	}
-}
+
 
 
 void xPortSysTickHandler( void )

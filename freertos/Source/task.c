@@ -42,7 +42,7 @@ static void prvInitialiseNewTask(TaskFunction_t pxTaskCode,
 	vListInitialiseItem(&(pxNewTCB->xStateListItem));
 
  	/* 设置 xStateListItem 节点的拥有者 */
-	listSET_LIST_ITEM_OWNER(&(pxNewTCB->xStateListItem),&pxNewTCB);
+	listSET_LIST_ITEM_OWNER(&(pxNewTCB->xStateListItem),pxNewTCB);
 	
 	/* 初始化任务栈 */
 	pxNewTCB->pxTopOfStack = (StackType_t*)pxPortInitialiseStack( pxTopOfStack, pxTaskCode, pvParameters ); 
@@ -104,9 +104,21 @@ extern TaskHandle_t xIdleTaskHandle;
 void vApplicationGetIdleTaskMemory( TCB_t **ppxIdleTaskTCBBuffer,
 												StackType_t **ppxIdleTaskStackBuffer,
 												uint32_t *pulIdleTaskStackSize );
+portCHAR flagIdle = 0;
+extern portCHAR flag1;
+extern portCHAR flag2;
+
 void prvIdleTask( void *p_arg )
 {
 
+/* 永远不要在空闲任务里加入阻塞或者死循环！！！！！！！！！！！！！！！
+	否则当其他任务优先级为0时，空闲任务会霸占整个时间片*/
+//	for( ;; )
+//	{
+////		flagIdle = 1;
+////		flag1 = 0;
+////		flag2 = 0;
+//	}
 }
 
 void vTaskStartScheduler( void )
@@ -134,7 +146,7 @@ void vTaskStartScheduler( void )
 						 (TCB_t *)pxIdleTaskTCBBuffer ); /* 任务控制块 */
 
 	/* 将任务添加到就绪列表 */
-	 vListInsertEnd( &( pxReadyTasksLists[0] ),&( ((TCB_t *)pxIdleTaskTCBBuffer)->xStateListItem ) );
+	vListInsertEnd( &( pxReadyTasksLists[0] ),&( ((TCB_t *)pxIdleTaskTCBBuffer)->xStateListItem ) );
 
 /*==========================创建空闲任务 end=====================*/
 	/* 手动指定第一个运行的任务 */
@@ -158,11 +170,11 @@ void vTaskDelay( const TickType_t xTicksToDelay )
 
 	/* 为什么非得任务切换？因为pxCurrentTCB已经被设置延时了，
 	假如延时不为0的话整个系统都会被阻塞 */
-//	if( pxTCB->xTicksToDelay == 0 )	?????为什么错了
-//	{
-//		taskYIELD();
-//	}
-	taskYIELD();
+	if( pxTCB->xTicksToDelay != 0 )
+	{
+		taskYIELD();
+	}
+//	taskYIELD();
 }
 
 #if 0
@@ -200,58 +212,58 @@ void vTaskSwitchContext( void )
 //		}
 //		
 //	}*/ 
-//	if ( pxCurrentTCB == &IdleTaskTCB )
-//	{
-//		if( Task1TCB.xTicksToDelay == 0 )
-//		{
-//			pxCurrentTCB = &Task1TCB;
-//		}
-//		else if( Task2TCB.xTicksToDelay == 0 )
-//		{
-//			pxCurrentTCB = &Task2TCB;
-//		}
-//		else
-//		{
-//			return;
-//		}
-//	}
-//	else if( pxCurrentTCB == &Task1TCB )
-//	{
-//		
-//		if( Task2TCB.xTicksToDelay == 0 )
-//		{
-//			pxCurrentTCB = &Task2TCB;
-//		}
-//		else if( Task1TCB.xTicksToDelay != 0 )
-//		{
-//			pxCurrentTCB = &IdleTaskTCB;
-//		}
-//		else
-//		{
-//			return;
-//		}
-//	}
-//	else if( pxCurrentTCB == &Task2TCB )
-//	{
-//		if( Task1TCB.xTicksToDelay == 0 )
-//		{
-//			pxCurrentTCB = &Task1TCB;
-//		}
-//		else if( Task2TCB.xTicksToDelay != 0 )
-//		{
-//			pxCurrentTCB = &IdleTaskTCB;
-//		}
-//		else
-//		{
-//			return;
-//		}
-//	}
+	if ( pxCurrentTCB == &IdleTaskTCB )
+	{
+		if( Task1TCB.xTicksToDelay == 0 )
+		{
+			pxCurrentTCB = &Task1TCB;
+		}
+		else if( Task2TCB.xTicksToDelay == 0 )
+		{
+			pxCurrentTCB = &Task2TCB;
+		}
+		else
+		{
+			return;
+		}
+	}
+	else if( pxCurrentTCB == &Task1TCB )
+	{
+		
+		if( Task2TCB.xTicksToDelay == 0 )
+		{
+			pxCurrentTCB = &Task2TCB;
+		}
+		else if( Task1TCB.xTicksToDelay != 0 )
+		{
+			pxCurrentTCB = &IdleTaskTCB;
+		}
+		else
+		{
+			return;
+		}
+	}
+	else if( pxCurrentTCB == &Task2TCB )
+	{
+		if( Task1TCB.xTicksToDelay == 0 )
+		{
+			pxCurrentTCB = &Task1TCB;
+		}
+		else if( Task2TCB.xTicksToDelay != 0 )
+		{
+			pxCurrentTCB = &IdleTaskTCB;
+		}
+		else
+		{
+			return;
+		}
+	}
 
 //	if( pxCurrentTCB == &Task1TCB )
 //	   {
 //		   pxCurrentTCB = &Task2TCB;
 //	   }
-//	   else
+//	else
 //	   {
 //		   pxCurrentTCB = &Task1TCB;
 //	   }
@@ -273,12 +285,16 @@ void xTaskIncrementTick( void )
 	/* 扫描就绪列表中所有任务的 xTicksToDelay,如果不为 0,则减 1 */
 	for( i = 0; i < configMAX_PRIORITIES; i++ )
 	{
-		pxTCB = (TCB_t*)listGET_OWNER_OF_HEAD_ENTRY( ( &pxReadyTasksLists[i] ) );//这里改动了
+		pxTCB = ((TCB_t*)((pxReadyTasksLists[i].xListEnd.pxNext)->pvOwner));
+		
+		//也可以用这种方法
+		//pxTCB = (TCB_t * ) listGET_OWNER_OF_HEAD_ENTRY( ( &pxReadyTasksLists[i] ) );
 		if( pxTCB->xTicksToDelay > 0 )
 		{
-			pxTCB->xTicksToDelay--;
+			pxTCB->xTicksToDelay --;
 		}
 	}
 	taskYIELD();
 }
+
 
