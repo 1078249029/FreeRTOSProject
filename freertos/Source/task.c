@@ -169,12 +169,12 @@ void vTaskDelay( const TickType_t xTicksToDelay )
 	pxTCB->xTicksToDelay = xTicksToDelay;
 
 	/* 为什么非得任务切换？因为pxCurrentTCB已经被设置延时了，
-	假如延时不为0的话整个系统都会被阻塞 */
-	if( pxTCB->xTicksToDelay != 0 )
-	{
-		taskYIELD();
-	}
-//	taskYIELD();
+	假如延时不为0的话整个系统都会被阻塞，若pxCurrentTCB不设置延时，这也会破坏优先级执行 */
+//	if( pxTCB->xTicksToDelay != 0 )
+//	{
+//		taskYIELD();
+//	}
+	taskYIELD();
 }
 
 #if 0
@@ -273,6 +273,7 @@ void vTaskSwitchContext( void )
 
 #endif
 
+/* 在xPortSysTickHandler中被调用，也就是SysTick_Handler 此函数负责时基自增，任务计时自减 */
 void xTaskIncrementTick( void )
 {
 	TCB_t *pxTCB = NULL;

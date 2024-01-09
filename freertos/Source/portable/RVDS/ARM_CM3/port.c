@@ -200,18 +200,21 @@ void vPortExitCritical(void)
 
 
 
-
+/* 负责进入增加时基，任务时间自减的函数，定义在Config.h:
+#define xPortSysTickHandler	SysTick_Handler 也就是按配置的重装器和主频来触发 */
 void xPortSysTickHandler( void )
 {
-//	uint32_t ISRreturn;
-//	/* 关中断 */
-// 	ISRreturn = portSET_INTERRUPT_MASK_FROM_ISR();	//使用的是能在中断中使用的函数会如何？
-//	/* 更新系统时基 */
-//	xTaskIncrementTick();
-//	/* 开中断 */
-//	portCLEAR_INTERRUPT_MASK_FROM_ISR(ISRreturn);
-	vPortRaiseBASEPRI();
+	uint32_t ISRreturn;
+	/* 关中断 */
+ 	ISRreturn = portSET_INTERRUPT_MASK_FROM_ISR();	//使用的是能在中断中使用的函数会如何？第九章实验现象可以完成
+	/* 更新系统时基 */
 	xTaskIncrementTick();
-	vPortClearBASEPRIFromISR();
+	/* 开中断 */
+	portCLEAR_INTERRUPT_MASK_FROM_ISR(ISRreturn);
+
+
+//	vPortRaiseBASEPRI();
+//	xTaskIncrementTick();
+//	vPortClearBASEPRIFromISR();
 }
 
