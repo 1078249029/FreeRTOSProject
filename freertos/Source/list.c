@@ -43,6 +43,7 @@ void vListInsert( List_t * const pxList, ListItem_t * const pxNewListItem )
 	}
 	else
 	{
+		/* 根据xItemValue，找到插入的位置 */
 		for(pxIterator = (ListItem_t*)&(pxList->xListEnd) ; 
 			xValueOfInsertion >= pxIterator->pxNext->xItemValue ; 
 			pxIterator = pxIterator->pxNext )
@@ -67,7 +68,7 @@ UBaseType_t uxListRemove( ListItem_t * const pxItemToRemove )
 	{
 		pxList->pxIndex = pxList->pxIndex->pxPrevious;
 	}	
-	//pxItemToRemove->pvContainer = NULL;//有什么用呢?
+	//pxItemToRemove->pvContainer = NULL;//有什么用呢?防止这个野指针指向其他的链表？
 	(pxList->uxNumberOfItems) --;
 	return pxList->uxNumberOfItems;
 }

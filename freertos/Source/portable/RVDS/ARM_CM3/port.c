@@ -55,6 +55,8 @@ void vPortSetupTimerInterrupt( void )
 static void prvTaskExitError( void )
 {
 
+/* 没有可供执行的任务时会停在这里，如果发生了这种情况，看一下空闲任务是否被执行 */
+
 /* 函数停止在这里 */
 for (;;);
 
@@ -206,7 +208,7 @@ void xPortSysTickHandler( void )
 {
 	uint32_t ISRreturn;
 	/* 关中断 */
- 	ISRreturn = portSET_INTERRUPT_MASK_FROM_ISR();	//使用的是能在中断中使用的函数会如何？第九章实验现象可以完成
+ 	ISRreturn = portSET_INTERRUPT_MASK_FROM_ISR();	//使用的是能在中断中使用的函数会如何？无影响,第九章实验现象可以完成
 	/* 更新系统时基 */
 	xTaskIncrementTick();
 	/* 开中断 */

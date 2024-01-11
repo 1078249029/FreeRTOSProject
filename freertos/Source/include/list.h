@@ -64,7 +64,7 @@ typedef struct xLIST
 	 
 /* 判断链表是否为空 */
 #define listLIST_IS_EMPTY( pxList )\
-( ( BaseType_t ) ( ( pxList )->uxNumberOfItems == ( UBaseType_t )) )
+( ( BaseType_t ) ( ( pxList )->uxNumberOfItems == ( UBaseType_t )0) )
 
  /* 获取链表的节点数 */
 #define listCURRENT_LIST_LENGTH( pxList )\
