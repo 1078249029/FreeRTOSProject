@@ -208,9 +208,15 @@ void xPortSysTickHandler( void )
 {
 	uint32_t ISRreturn;
 	/* 关中断 */
- 	ISRreturn = portSET_INTERRUPT_MASK_FROM_ISR();	//使用的是能在中断中使用的函数会如何？无影响,第九章实验现象可以完成
+	//使用的是能在中断中使用的函数会如何？无影响,第九章实验现象可以完成，但是因为SysTick优先级过低而无用
+	ISRreturn = portSET_INTERRUPT_MASK_FROM_ISR();	
 	/* 更新系统时基 */
-	xTaskIncrementTick();
+	//xTaskIncrementTick();
+	if(xTaskIncrementTick() != pdFALSE)
+	{
+		taskYIELD();
+	}
+
 	/* 开中断 */
 	portCLEAR_INTERRUPT_MASK_FROM_ISR(ISRreturn);
 

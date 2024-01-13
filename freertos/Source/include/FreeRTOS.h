@@ -6,6 +6,9 @@
 #include "portable.h"
 #include "list.h"
 
+#ifndef configUSE_TIME_SLICING
+	#define configUSE_TIME_SLICING	1
+#endif
 
 typedef struct tskTaskControlBlock
 {
