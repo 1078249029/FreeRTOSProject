@@ -422,8 +422,7 @@ BaseType_t xTaskIncrementTick( void )
 // 	BaseType_t i = 0;
 	TickType_t xItemValue;
 	BaseType_t xSwitchRequired = pdFALSE;
-	
-	/* 更新系统时基计数器 xTickCount,xTickCount 是一个在 port.c 中定义的全局变量 */
+
  	const TickType_t xConstTickCount = xTickCount + 1;//常量赋值？是的，const可以被在定义时被变量赋值
  	xTickCount = xConstTickCount;
 

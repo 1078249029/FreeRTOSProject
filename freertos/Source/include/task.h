@@ -16,6 +16,7 @@
 typedef void * TaskHandle_t;
 
 
+
 #if( configSUPPORT_STATIC_ALLOCATION == 1 )
 TaskHandle_t xTaskCreateStatic(	TaskFunction_t pxTaskCode,
 					            const char * const pcName,

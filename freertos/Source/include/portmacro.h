@@ -46,10 +46,6 @@ void vPortExitCritical( void );
 #define portENTER_CRITICAL()					vPortEnterCritical()
 #define portEXIT_CRITICAL()						vPortExitCritical()
 
-
-/* 不带返回值的关中断函数,不能嵌套,不能在中断里面使用 */
-#define portDISABLE_INTERRUPTS() vPortRaiseBASEPRI()
-
 #define portINLINE __inline
 
 #ifndef portFORCE_INLINE
@@ -92,6 +88,9 @@ static portFORCE_INLINE void vPortRaiseBASEPRI( void )
 		isb
 	}
 }
+
+/* 不带返回值的关中断函数,不能嵌套,不能在中断里面使用 */
+#define portDISABLE_INTERRUPTS() vPortRaiseBASEPRI()
 
 /* 带返回值的关中断函数,可以嵌套,可以在中断里面使用 */
 #define portSET_INTERRUPT_MASK_FROM_ISR() ulPortRaiseBASEPRI()

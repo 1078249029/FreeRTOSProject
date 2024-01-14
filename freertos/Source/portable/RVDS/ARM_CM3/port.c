@@ -2,6 +2,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "ARMCM3.h"
+#include "semaphore.h"
 
 #define portINITIAL_XPSR			( 0x01000000 )
 #define portSTART_ADDRESS_MASK		( ( StackType_t ) 0xfffffffeUL )
@@ -212,11 +213,12 @@ void xPortSysTickHandler( void )
 	ISRreturn = portSET_INTERRUPT_MASK_FROM_ISR();	
 	/* 更新系统时基 */
 	//xTaskIncrementTick();
+	xSemaphoreIncrementTick();
 	if(xTaskIncrementTick() != pdFALSE)
 	{
 		taskYIELD();
 	}
-
+	
 	/* 开中断 */
 	portCLEAR_INTERRUPT_MASK_FROM_ISR(ISRreturn);
 
