@@ -116,18 +116,18 @@ __asm void prvStartFirstTask( void )
 __asm void vPortSVCHandler( void )
 {
 
- extern pxCurrentTCB;
- PRESERVE8
- ldr r3, =pxCurrentTCB
- ldr r1, [r3]
- ldr r0, [r1]
- ldmia r0!, {r4-r11}
- msr psp, r0
- isb
- mov r0, #0
- msr basepri, r0	//开中断
- orr r14, #0xd		//设置LR的值
- bx r14				//此处不会返回r14(LR),而是返回到任务堆栈，具体看CM3手册
+	 extern pxCurrentTCB;
+	 PRESERVE8
+	 ldr r3, =pxCurrentTCB
+	 ldr r1, [r3]
+	 ldr r0, [r1]
+	 ldmia r0!, {r4-r11}
+	 msr psp, r0
+	 isb
+	 mov r0, #0
+	 msr basepri, r0	//开中断
+	 orr r14, #0xd		//设置LR的值
+	 bx r14				//此处不会返回r14(LR),而是返回到任务堆栈，具体看CM3手册
 }
 
  __asm void xPortPendSVHandler( void )

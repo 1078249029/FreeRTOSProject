@@ -21,7 +21,7 @@ void vListInitialise( List_t * const pxList )
 
 void vListInsertEnd( List_t * const pxList, ListItem_t * const pxNewListItem )
 {
-	/*未测试*/
+	/* 未测试 */
 	pxNewListItem->pvContainer = (void*)pxList; 		
 	pxNewListItem->pxNext = pxList->pxIndex;
 	pxNewListItem->pxPrevious = pxList->pxIndex->pxPrevious;
@@ -30,13 +30,13 @@ void vListInsertEnd( List_t * const pxList, ListItem_t * const pxNewListItem )
 	(pxList->uxNumberOfItems) ++;
 }
 
-/*将节点按升序插入链表*/
+/* 将节点按升序插入链表 */
 void vListInsert( List_t * const pxList, ListItem_t * const pxNewListItem )
 {
 	ListItem_t *pxIterator;
 	/* 获取节点的排序辅助值 */
 	const TickType_t xValueOfInsertion = pxNewListItem->xItemValue;
-	/*找到pxIterator*/
+	/* 找到pxIterator */
 	if(pxIterator->xItemValue == portMAX_DELAY)
 	{
 		pxIterator = pxList->xListEnd.pxPrevious;		

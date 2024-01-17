@@ -126,7 +126,7 @@ static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB )
 			prvInitialiseTaskLists();
 		}
 	}
-	/* 不为空的话，需要判断一下优先级，然后根据优先级判定的结果设置当前TCB */
+	/* 不为空的话，需要判断一下优先级，然后根据优先级判定的结果设置当前TCB为最高优先级的TCB */
 	else
 	{
 		if( pxCurrentTCB->uxPriority <= pxNewTCB->uxPriority )

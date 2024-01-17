@@ -1,3 +1,5 @@
+#ifndef SEMAPHORE_H
+#define SEMAPHORE_H
 
 struct xSEMAPHORE_ITEM
 {
@@ -15,9 +17,5 @@ SemaphoreHandle_t SemaphoreCreat(Semaphore_t* const Semaphore,UBaseType_t MaxCou
 void SemaphoreTake(SemaphoreHandle_t* const Semaphore,BaseType_t WaitTime);
 void SemaphoreGive(SemaphoreHandle_t* const Semaphore);
 
-
-
-
-
-
+#endif
 
