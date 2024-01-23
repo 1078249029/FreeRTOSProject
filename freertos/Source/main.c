@@ -145,7 +145,7 @@ void Task1_Entry( void *p_arg )
 			for(i = 0; i < 5; i++ )
 			{
 				flag1 = 0;
-				delay(1000);
+				delay(1000); //delay(10000)则不会出现bug，初步考虑是延时太短，传递信号频率太高导致丢数据
 				flag1 = 1;
 				delay(1000);
 				l++;
